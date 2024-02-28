@@ -85,7 +85,7 @@ func NewSlabArena(slabSize, slabCount int) Arena {
 // Alloc satisfies the Arena interface.
 func (a *slabArena) Alloc(size int) unsafe.Pointer {
 	for i := 0; i < len(a.slabs); i++ {
-		ptr, ok := a.slabs[0].alloc(size)
+		ptr, ok := a.slabs[i].alloc(size)
 		if ok {
 			return ptr
 		}
