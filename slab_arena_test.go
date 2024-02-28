@@ -3,6 +3,7 @@
 package nuke
 
 import (
+	"runtime"
 	"testing"
 	"unsafe"
 
@@ -32,6 +33,36 @@ func TestSlabArenaSendObjectToHeap(t *testing.T) {
 
 	// Send last one to the heap
 	require.False(t, isSlabArenaPtr(arena, unsafe.Pointer(New[int](arena))))
+}
+
+func TestSlabArenaReset(t *testing.T) {
+	arena := NewSlabArena(1024, 1).(*slabArena) // one slab of 1KB
+
+	// Allocate slab buffer
+	_ = New[int](arena)
+
+	// Configure finalizer
+	var gced bool
+	runtime.SetFinalizer((*byte)(arena.slabs[0].ptr), func(*byte) {
+		gced = true
+	})
+
+	// Reset the arena (without releasing memory)
+	arena.Reset(false)
+	runtime.GC()
+	require.False(t, gced)
+
+	// Do another allocation
+	_ = New[int](arena)
+
+	// Reset the arena (releasing memory)
+	arena.Reset(true)
+	runtime.GC()
+	require.True(t, gced)
+
+	// Add this extra allocation here to prevent the compiler from marking arena reference as unused
+	// before invoking runtime.GC().
+	_ = New[int](arena)
 }
 
 func TestSlabArenaAllocateSlice(t *testing.T) {}
