@@ -39,6 +39,9 @@ func TestSlabArenaAllocateSlice(t *testing.T) {}
 func isSlabArenaPtr(a Arena, ptr unsafe.Pointer) bool {
 	sa := a.(*slabArena)
 	for _, s := range sa.slabs {
+		if s.ptr == nil {
+			break
+		}
 		beginPtr := uintptr(s.ptr)
 		endPtr := uintptr(s.ptr) + uintptr(s.size)
 
