@@ -1,4 +1,4 @@
-module github.com/ortuman/memnuke
+module github.com/ortuman/nuke
 
 go 1.21.7
 
