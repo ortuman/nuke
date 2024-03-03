@@ -89,19 +89,39 @@ func main() {
 
 ## Concurrency
 
-By default, the arena implementation is not thread-safe, meaning it is not safe to access it concurrently from different goroutines. If the specific use case requires concurrent access, the library provides the `NewConcurrentArena` function, to which a base arena is passed and it returns a new instance that can be accessed concurrently.
+By default, the arena implementation is not concurrent-safe, meaning it is not safe to access it concurrently from different goroutines. If the specific use case requires concurrent access, the library provides the `NewConcurrentArena` function, to which a base arena is passed and it returns a new instance that can be accessed concurrently.
+
+```go
+package main
+
+import (
+	"github.com/ortuman/nuke"
+)
+
+func main() {
+	arena := nuke.NewConcurrentArena(
+            nuke.NewSlabArena(256*1024, 20*1024*1024),
+        )
+	defer arena.Reset(true)
+	
+	// From here on, the arena can be safely accessed concurrently.
+	// ...
+}
+```
 
 ## Benchmarks
 
+Below is a comparative table with the different benchmark results.
+
 ```
-BenchmarkRuntimeNewObject/100-8           	             1394955	       846.6 ns/op	     800 B/op	     100 allocs/op
-BenchmarkRuntimeNewObject/1000-8          	              143031	      8357 ns/op	    8000 B/op	    1000 allocs/op
-BenchmarkRuntimeNewObject/10000-8         	               14371	     83562 ns/op	   80000 B/op	   10000 allocs/op
-BenchmarkRuntimeNewObject/100000-8        	                1428	    835474 ns/op	  800005 B/op	  100000 allocs/op
-BenchmarkSlabArenaNewObject/100-8         	              124495	     15469 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSlabArenaNewObject/1000-8        	               76744	     19602 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSlabArenaNewObject/10000-8       	               24104	     50845 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSlabArenaNewObject/100000-8      	                3282	    366044 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRuntimeNewObject/100-8           	         1394955	     846.6 ns/op	     800 B/op	     100 allocs/op
+BenchmarkRuntimeNewObject/1000-8          	          143031	      8357 ns/op	    8000 B/op	    1000 allocs/op
+BenchmarkRuntimeNewObject/10000-8         	           14371	     83562 ns/op	   80000 B/op	   10000 allocs/op
+BenchmarkRuntimeNewObject/100000-8        	            1428	    835474 ns/op	  800005 B/op	  100000 allocs/op
+BenchmarkSlabArenaNewObject/100-8         	          124495	     15469 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSlabArenaNewObject/1000-8        	           76744	     19602 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSlabArenaNewObject/10000-8       	           24104	     50845 ns/op	       0 B/op	       0 allocs/op
+BenchmarkSlabArenaNewObject/100000-8      	            3282	    366044 ns/op	       0 B/op	       0 allocs/op
 BenchmarkConcurrentSlabArenaNewObject/100-8         	   90392	     16679 ns/op	       0 B/op	       0 allocs/op
 BenchmarkConcurrentSlabArenaNewObject/1000-8        	   43753	     29823 ns/op	       0 B/op	       0 allocs/op
 BenchmarkConcurrentSlabArenaNewObject/10000-8       	    8037	    149923 ns/op	       0 B/op	       0 allocs/op
