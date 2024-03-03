@@ -5,6 +5,7 @@ package nuke
 import (
 	"runtime"
 	"testing"
+	"time"
 	"unsafe"
 
 	"github.com/stretchr/testify/require"
@@ -42,15 +43,22 @@ func TestSlabArenaReset(t *testing.T) {
 	_ = New[int](arena)
 
 	// Configure finalizer
-	var gced bool
+	gced := make(chan bool)
 	runtime.SetFinalizer((*byte)(arena.slabs[0].ptr), func(*byte) {
-		gced = true
+		close(gced)
 	})
 
 	// Reset the arena (without releasing memory)
 	arena.Reset(false)
 	runtime.GC()
-	require.False(t, gced)
+
+	select {
+	case <-gced:
+		require.Fail(t, "finalizer should not have been called")
+
+	case <-time.NewTimer(time.Second).C:
+		break
+	}
 
 	// Do another allocation
 	_ = New[int](arena)
@@ -58,7 +66,14 @@ func TestSlabArenaReset(t *testing.T) {
 	// Reset the arena (releasing memory)
 	arena.Reset(true)
 	runtime.GC()
-	require.True(t, gced)
+
+	select {
+	case <-gced:
+		break
+
+	case <-time.NewTimer(time.Second).C:
+		require.Fail(t, "finalizer should have been called")
+	}
 
 	// Add this extra allocation here to prevent the compiler from marking arena reference as unused
 	// before invoking runtime.GC().
