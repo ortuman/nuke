@@ -3,6 +3,7 @@
 package nuke
 
 import (
+	"fmt"
 	"runtime"
 	"testing"
 	"time"
@@ -97,3 +98,124 @@ func isSlabArenaPtr(a Arena, ptr unsafe.Pointer) bool {
 	}
 	return false
 }
+
+func BenchmarkRuntimeNewObject(b *testing.B) {
+	a := newRuntimeAllocator[int]()
+	for _, objectCount := range []int{100, 1_000, 10_000, 100_000} {
+		b.Run(fmt.Sprintf("%d", objectCount), func(b *testing.B) {
+			b.ReportAllocs()
+			for i := 0; i < b.N; i++ {
+				for j := 0; j < objectCount; j++ {
+					_ = a.new()
+				}
+			}
+		})
+	}
+}
+
+func BenchmarkSlabArenaNewObject(b *testing.B) {
+	slabArena := NewSlabArena(1024*1024, 128) // 1Mb slab size (128 MB)
+
+	a := newArenaAllocator[int](slabArena)
+	for _, objectCount := range []int{100, 1_000, 10_000, 100_000} {
+		b.Run(fmt.Sprintf("%d", objectCount), func(b *testing.B) {
+			b.ReportAllocs()
+			for i := 0; i < b.N; i++ {
+				for j := 0; j < objectCount; j++ {
+					_ = a.new()
+				}
+				a.(*arenaAllocator[int]).a.Reset(false)
+			}
+		})
+	}
+}
+
+func BenchmarkConcurrentSlabArenaNewObject(b *testing.B) {
+	slabArena := NewSlabArena(1024*1024, 128) // 1Mb slab size (128 MB)
+
+	a := newArenaAllocator[int](NewConcurrentArena(slabArena))
+	for _, objectCount := range []int{100, 1_000, 10_000, 100_000} {
+		b.Run(fmt.Sprintf("%d", objectCount), func(b *testing.B) {
+			b.ReportAllocs()
+			for i := 0; i < b.N; i++ {
+				for j := 0; j < objectCount; j++ {
+					_ = a.new()
+				}
+				a.(*arenaAllocator[int]).a.Reset(false)
+			}
+		})
+	}
+}
+
+func BenchmarkRuntimeMakeSlice(b *testing.B) {
+	a := newRuntimeAllocator[int]()
+	for _, objectCount := range []int{100, 1_000, 10_000, 100_000} {
+		b.Run(fmt.Sprintf("%d", objectCount), func(b *testing.B) {
+			b.ReportAllocs()
+			for i := 0; i < b.N; i++ {
+				for j := 0; j < objectCount; j++ {
+					_ = a.makeSlice(0, 256)
+				}
+			}
+		})
+	}
+}
+
+func BenchmarkSlabArenaMakeSlice(b *testing.B) {
+	slabArena := NewSlabArena(1024*1024, 128) // 1Mb slab size (128 MB)
+
+	a := newArenaAllocator[int](slabArena)
+	for _, objectCount := range []int{100, 1_000, 10_000, 100_000} {
+		b.Run(fmt.Sprintf("%d", objectCount), func(b *testing.B) {
+			b.ReportAllocs()
+			for i := 0; i < b.N; i++ {
+				for j := 0; j < objectCount; j++ {
+					_ = a.makeSlice(0, 256)
+				}
+				a.(*arenaAllocator[int]).a.Reset(false)
+			}
+		})
+	}
+}
+
+func BenchmarkConcurrentSlabArenaMakeSlice(b *testing.B) {
+	slabArena := NewSlabArena(1024*1024, 128) // 1Mb slab size (128 MB)
+
+	a := newArenaAllocator[int](NewConcurrentArena(slabArena))
+	for _, objectCount := range []int{100, 1_000, 10_000, 100_000} {
+		b.Run(fmt.Sprintf("%d", objectCount), func(b *testing.B) {
+			b.ReportAllocs()
+			for i := 0; i < b.N; i++ {
+				for j := 0; j < objectCount; j++ {
+					_ = a.makeSlice(0, 256)
+				}
+				a.(*arenaAllocator[int]).a.Reset(false)
+			}
+		})
+	}
+}
+
+type allocator[T any] interface {
+	new() *T
+	makeSlice(len, cap int) []T
+}
+
+type runtimeAllocator[T any] struct{}
+
+func newRuntimeAllocator[T any]() allocator[T] {
+	return &runtimeAllocator[T]{}
+}
+
+func (r *runtimeAllocator[T]) new() *T                    { return new(T) }
+func (r *runtimeAllocator[T]) makeSlice(len, cap int) []T { return make([]T, len, cap) }
+
+type arenaAllocator[T any] struct {
+	a Arena
+}
+
+func newArenaAllocator[T any](a Arena) allocator[T] {
+	return &arenaAllocator[T]{a: a}
+}
+
+func (r *arenaAllocator[T]) new() *T                    { return New[T](r.a) }
+func (r *arenaAllocator[T]) makeSlice(len, cap int) []T { return MakeSlice[T](r.a, len, cap) }
