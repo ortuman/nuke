@@ -3,7 +3,6 @@
 package nuke
 
 import (
-	"sync"
 	"unsafe"
 )
 
@@ -12,22 +11,16 @@ type slabArena struct {
 }
 
 type slab struct {
-	mtx    sync.Mutex
 	ptr    unsafe.Pointer
 	offset int
 	size   int
 }
 
 func newSlab(size int) *slab {
-	return &slab{
-		size: size,
-	}
+	return &slab{size: size}
 }
 
 func (s *slab) alloc(size int) (unsafe.Pointer, bool) {
-	s.mtx.Lock()
-	defer s.mtx.Unlock()
-
 	if s.ptr == nil {
 		buf := make([]byte, s.size) // allocate slab buffer lazily
 		s.ptr = unsafe.Pointer(unsafe.SliceData(buf))
@@ -42,9 +35,6 @@ func (s *slab) alloc(size int) (unsafe.Pointer, bool) {
 }
 
 func (s *slab) reset(release bool) {
-	s.mtx.Lock()
-	defer s.mtx.Unlock()
-
 	if s.offset == 0 {
 		return
 	}

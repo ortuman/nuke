@@ -87,6 +87,10 @@ func main() {
 }
 ```
 
+## Concurrency
+
+By default, the arena implementation is not thread-safe, meaning it is not safe to access it concurrently from different goroutines. If the specific use case requires concurrent access, the library provides the `NewConcurrentArena` function, to which a base arena is passed and it returns a new instance that can be accessed concurrently.
+
 ## Contributing
 
 We welcome contributions from the community! If you'd like to contribute, please fork the repository, make your changes, and submit a pull request.
