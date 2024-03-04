@@ -15,15 +15,13 @@ A memory arena implementation for Go.
 
 ## But wait, what is a memory arena?
 
-A memory arena, is a method of memory management where a large block of memory is allocated at once and portions of it are used to satisfy allocation requests from the program. In the context of a garbage-collected (GC) language, the use of memory arenas can offer several advantages:
+A memory arena is a method of memory management where a large block of memory is allocated at once and portions of it are used to satisfy allocation requests from the program. In the context of a garbage-collected language such as Go, the use of memory arenas can offer several advantages:
 
 * **Performance Improvement**: By allocating memory in large blocks, memory arenas reduce the overhead associated with frequent calls to the system's memory allocator. This can lead to performance improvements, especially in applications that perform many small allocations.
 
-* **Simplified Memory Management**: In some scenarios, memory management can be simplified by allocating from an arena that is freed all at once. This is particularly useful for short-lived allocations where all the memory allocated from the arena can be released in a single operation, thus avoiding the need for individual deallocations.
+* **Simplified Memory Management**: In some scenarios, memory management can be simplified by allocating from an arena that is freed all at once. This is particularly useful for short-lived allocations where all the memory allocated from the arena can be released in a single operation.
 
-* **Predictability**: Memory allocation from an arena can be more predictable in terms of performance, as it avoids the unpredictability of system memory allocation routines. This can be beneficial in real-time or high-performance applications where consistent timing is crucial.
-
-* **Garbage Collection Efficiency**: In garbage-collected languages like Go, using memory arenas can reduce the workload on the garbage collector by decreasing the number of objects that need to be tracked and collected, leading to less pause time and more predictable performance.
+* **Garbage Collection Efficiency**: Using memory arenas can reduce the workload on the garbage collector by decreasing the number of objects that need to be tracked and collected, leading to less pause time and more predictable performance.
 
 However, while memory arenas offer these advantages, they are not a silver bullet and come with trade-offs, such as potentially increased memory usage due to unused space within the allocated blocks. Careful consideration and profiling are necessary to determine whether using a memory arena is beneficial for a particular application.
 
@@ -103,7 +101,7 @@ func main() {
 
 ## Concurrency
 
-By default the arena implementation is not concurrent-safe, meaning it is not safe to access it concurrently from different goroutines. If the specific use case requires concurrent access, the library provides the `NewConcurrentArena` function, to which a base arena is passed and it returns a new instance that can be accessed concurrently.
+By default, the arena implementation is not concurrent-safe, meaning it is not safe to access it concurrently from different goroutines. If the specific use case requires concurrent access, the library provides the `NewConcurrentArena` function, to which a base arena is passed and it returns a new instance that can be accessed concurrently.
 
 ```go
 package main
