@@ -12,6 +12,7 @@ type Arena interface {
 	Alloc(size int) unsafe.Pointer
 
 	// Reset resets the arena's state, optionally releasing the memory.
+	// After invoking this method any pointer previously returned by Alloc becomes immediately invalid.
 	Reset(release bool)
 }
 
