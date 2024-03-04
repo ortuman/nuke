@@ -19,7 +19,7 @@ A memory arena is a method of memory management where a large block of memory is
 
 * **Performance Improvement**: By allocating memory in large blocks, memory arenas reduce the overhead associated with frequent calls to the system's memory allocator. This can lead to performance improvements, especially in applications that perform many small allocations.
 
-* **Simplified Memory Management**: In some scenarios, memory management can be simplified by allocating from an arena that is freed all at once. This is particularly useful for short-lived allocations where all the memory allocated from the arena can be released in a single operation.
+* **Enhanced Cache Locality**: Memory arenas can also improve cache locality by allocating closely related objects within the same block of memory. This arrangement increases the likelihood that when one object is accessed, other related objects are already in the cache, thus reducing cache misses and enhancing overall application performance.
 
 * **Garbage Collection Efficiency**: Using memory arenas can reduce the workload on the garbage collector by decreasing the number of objects that need to be tracked and collected, leading to less pause time and more predictable performance.
 
