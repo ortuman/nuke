@@ -45,9 +45,9 @@ import (
 type Foo struct { A int }
 
 func main() {
-	// Initialize a new memory arena with a slab size of 256KB 
+	// Initialize a new monotonic arena with a buffer size of 256KB 
 	// and a max memory size of 20MB.
-	arena := nuke.NewSlabArena(256*1024, 20*1024*1024)
+	arena := nuke.NewMonotonicArena(256*1024, 80)
 	
 	// Allocate a new object of type Foo.
 	fooRef := nuke.New[Foo](arena)
@@ -63,7 +63,7 @@ func main() {
 	
 	// ...
 
-	// When done, reset the arena (releasing slab buffer memory).
+	// When done, reset the arena (releasing monotonic buffer memory).
 	arena.Reset(true)
 	
 	// From here on, any arena reference is invalid.
@@ -76,7 +76,7 @@ Additionally, we can inject a memory arena as part of a context, with the purpos
 ```go
 func httpHandler(w http.ResponseWriter, r *http.Request) {
     // Inject memory arena into request context.
-    arena := nuke.NewSlabArena(64*1024, 1024*1024)
+    arena := nuke.NewMonotonicArena(64*1024, 10)
     defer arena.Reset(true)
 	
     ctx := nuke.InjectContextArena(r.Context(), arena)
@@ -112,7 +112,7 @@ import (
 
 func main() {
 	arena := nuke.NewConcurrentArena(
-            nuke.NewSlabArena(256*1024, 20*1024*1024),
+            nuke.NewMonotonicArena(256*1024, 20),
         )
 	defer arena.Reset(true)
 	
@@ -130,26 +130,26 @@ BenchmarkRuntimeNewObject/100-8           	         1394955	     846.6 ns/op	   
 BenchmarkRuntimeNewObject/1000-8          	          143031	      8357 ns/op	    8000 B/op	    1000 allocs/op
 BenchmarkRuntimeNewObject/10000-8         	           14371	     83562 ns/op	   80000 B/op	   10000 allocs/op
 BenchmarkRuntimeNewObject/100000-8        	            1428	    835474 ns/op	  800005 B/op	  100000 allocs/op
-BenchmarkSlabArenaNewObject/100-8         	          124495	     15469 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSlabArenaNewObject/1000-8        	           76744	     19602 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSlabArenaNewObject/10000-8       	           24104	     50845 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSlabArenaNewObject/100000-8      	            3282	    366044 ns/op	       0 B/op	       0 allocs/op
-BenchmarkConcurrentSlabArenaNewObject/100-8         	   90392	     16679 ns/op	       0 B/op	       0 allocs/op
-BenchmarkConcurrentSlabArenaNewObject/1000-8        	   43753	     29823 ns/op	       0 B/op	       0 allocs/op
-BenchmarkConcurrentSlabArenaNewObject/10000-8       	    8037	    149923 ns/op	       0 B/op	       0 allocs/op
-BenchmarkConcurrentSlabArenaNewObject/100000-8      	     879	   1364377 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMonotonicArenaNewObject/100-8         	          124495	     15469 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMonotonicArenaNewObject/1000-8        	           76744	     19602 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMonotonicArenaNewObject/10000-8       	           24104	     50845 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMonotonicArenaNewObject/100000-8      	            3282	    366044 ns/op	       0 B/op	       0 allocs/op
+BenchmarkConcurrentMonotonicArenaNewObject/100-8           90392	     16679 ns/op	       0 B/op	       0 allocs/op
+BenchmarkConcurrentMonotonicArenaNewObject/1000-8          43753	     29823 ns/op	       0 B/op	       0 allocs/op
+BenchmarkConcurrentMonotonicArenaNewObject/10000-8          8037	    149923 ns/op	       0 B/op	       0 allocs/op
+BenchmarkConcurrentMonotonicArenaNewObject/100000-8          879	   1364377 ns/op	       0 B/op	       0 allocs/op
 BenchmarkRuntimeMakeSlice/100-8                     	   58166	     19684 ns/op	  204800 B/op	     100 allocs/op
 BenchmarkRuntimeMakeSlice/1000-8                    	    5916	    196412 ns/op	 2048010 B/op	    1000 allocs/op
 BenchmarkRuntimeMakeSlice/10000-8                   	     600	   1965622 ns/op	20480106 B/op	   10001 allocs/op
 BenchmarkRuntimeMakeSlice/100000-8                  	      60	  19664140 ns/op	204801155 B/op	  100012 allocs/op
-BenchmarkSlabArenaMakeSlice/100-8                   	  166300	     14520 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSlabArenaMakeSlice/1000-8                  	   43785	     36938 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSlabArenaMakeSlice/10000-8                 	    2707	    427398 ns/op	       0 B/op	       0 allocs/op
-BenchmarkSlabArenaMakeSlice/100000-8                	      87	  14048963 ns/op	70582284 B/op	   34464 allocs/op
-BenchmarkConcurrentSlabArenaMakeSlice/100-8         	   91959	     17944 ns/op	       0 B/op	       0 allocs/op
-BenchmarkConcurrentSlabArenaMakeSlice/1000-8        	   27384	     42790 ns/op	       0 B/op	       0 allocs/op
-BenchmarkConcurrentSlabArenaMakeSlice/10000-8       	    2406	    480474 ns/op	       0 B/op	       0 allocs/op
-BenchmarkConcurrentSlabArenaMakeSlice/100000-8      	      84	  14702775 ns/op	70582280 B/op	   34464 allocs/op
+BenchmarkMonotonicArenaMakeSlice/100-8                    166300	     14520 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMonotonicArenaMakeSlice/1000-8                    43785	     36938 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMonotonicArenaMakeSlice/10000-8                    2707	    427398 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMonotonicArenaMakeSlice/100000-8                     87	  14048963 ns/op	70582284 B/op	   34464 allocs/op
+BenchmarkConcurrentMonotonicArenaMakeSlice/100-8           91959	     17944 ns/op	       0 B/op	       0 allocs/op
+BenchmarkConcurrentMonotonicArenaMakeSlice/1000-8          27384	     42790 ns/op	       0 B/op	       0 allocs/op
+BenchmarkConcurrentMonotonicArenaMakeSlice/10000-8          2406	    480474 ns/op	       0 B/op	       0 allocs/op
+BenchmarkConcurrentMonotonicArenaMakeSlice/100000-8           84	  14702775 ns/op	70582280 B/op	   34464 allocs/op
 ```
 
 ## Contributing
