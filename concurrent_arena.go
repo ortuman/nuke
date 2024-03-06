@@ -19,9 +19,9 @@ func NewConcurrentArena(a Arena) Arena {
 }
 
 // Alloc satisfies the Arena interface.
-func (a *concurrentArena) Alloc(size int) unsafe.Pointer {
+func (a *concurrentArena) Alloc(size, alignment uintptr) unsafe.Pointer {
 	a.mtx.Lock()
-	ptr := a.a.Alloc(size)
+	ptr := a.a.Alloc(size, alignment)
 	a.mtx.Unlock()
 	return ptr
 }

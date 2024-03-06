@@ -12,24 +12,30 @@ type monotonicArena struct {
 
 type monotonicBuffer struct {
 	ptr    unsafe.Pointer
-	offset int
-	size   int
+	offset uintptr
+	size   uintptr
 }
 
 func newMonotonicBuffer(size int) *monotonicBuffer {
-	return &monotonicBuffer{size: size}
+	return &monotonicBuffer{size: uintptr(size)}
 }
 
-func (s *monotonicBuffer) alloc(size int) (unsafe.Pointer, bool) {
+func (s *monotonicBuffer) alloc(size, alignment uintptr) (unsafe.Pointer, bool) {
 	if s.ptr == nil {
 		buf := make([]byte, s.size) // allocate monotonic buffer lazily
 		s.ptr = unsafe.Pointer(unsafe.SliceData(buf))
 	}
-	if s.availableBytes() < size {
+	alignOffset := uintptr(0)
+	for alignedPtr := uintptr(s.ptr) + s.offset; alignedPtr%alignment != 0; alignedPtr++ {
+		alignOffset++
+	}
+	allocSize := size + alignOffset
+
+	if s.availableBytes() < allocSize {
 		return nil, false
 	}
-	ptr := unsafe.Pointer(uintptr(s.ptr) + uintptr(s.offset))
-	s.offset += size
+	ptr := unsafe.Pointer(uintptr(s.ptr) + s.offset + alignOffset)
+	s.offset += allocSize
 
 	return ptr, true
 }
@@ -59,7 +65,7 @@ func (s *monotonicBuffer) zeroOutBuffer() {
 	}
 }
 
-func (s *monotonicBuffer) availableBytes() int {
+func (s *monotonicBuffer) availableBytes() uintptr {
 	return s.size - s.offset
 }
 
@@ -73,9 +79,9 @@ func NewMonotonicArena(bufferSize, bufferCount int) Arena {
 }
 
 // Alloc satisfies the Arena interface.
-func (a *monotonicArena) Alloc(size int) unsafe.Pointer {
+func (a *monotonicArena) Alloc(size, alignment uintptr) unsafe.Pointer {
 	for i := 0; i < len(a.buffers); i++ {
-		ptr, ok := a.buffers[i].alloc(size)
+		ptr, ok := a.buffers[i].alloc(size, alignment)
 		if ok {
 			return ptr
 		}
