@@ -12,8 +12,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestSlabArenaAllocateObject(t *testing.T) {
-	arena := NewSlabArena(8182, 1) // 8KB
+func TestMonotonicArenaAllocateObject(t *testing.T) {
+	arena := NewMonotonicArena(8182, 1) // 8KB
 
 	var refs []*int
 	for i := 0; i < 1_000; i++ {
@@ -21,31 +21,33 @@ func TestSlabArenaAllocateObject(t *testing.T) {
 	}
 
 	for i := 0; i < 1_000; i++ {
-		require.True(t, isSlabArenaPtr(arena, unsafe.Pointer(refs[i])))
+		require.True(t, isMonotonicArenaPtr(arena, unsafe.Pointer(refs[i])))
 	}
 }
 
-func TestSlabArenaSendObjectToHeap(t *testing.T) {
+func TestMonotonicArenaAllocateSlice(t *testing.T) {}
+
+func TestMonotonicArenaSendObjectToHeap(t *testing.T) {
 	var x int
-	arena := NewSlabArena(2*int(unsafe.Sizeof(x)), 1) // 2 ints room
+	arena := NewMonotonicArena(2*int(unsafe.Sizeof(x)), 1) // 2 ints room
 
 	// Send the first two ints to the arena
-	require.True(t, isSlabArenaPtr(arena, unsafe.Pointer(New[int](arena))))
-	require.True(t, isSlabArenaPtr(arena, unsafe.Pointer(New[int](arena))))
+	require.True(t, isMonotonicArenaPtr(arena, unsafe.Pointer(New[int](arena))))
+	require.True(t, isMonotonicArenaPtr(arena, unsafe.Pointer(New[int](arena))))
 
 	// Send last one to the heap
-	require.False(t, isSlabArenaPtr(arena, unsafe.Pointer(New[int](arena))))
+	require.False(t, isMonotonicArenaPtr(arena, unsafe.Pointer(New[int](arena))))
 }
 
-func TestSlabArenaReset(t *testing.T) {
-	arena := NewSlabArena(1024, 1).(*slabArena) // one slab of 1KB
+func TestMonotonicArenaReset(t *testing.T) {
+	arena := NewMonotonicArena(1024, 1).(*monotonicArena) // one monotonic buffer of 1KB
 
-	// Allocate slab buffer
+	// Allocate monotonic buffer
 	_ = New[int](arena)
 
 	// Configure finalizer
 	gced := make(chan bool)
-	runtime.SetFinalizer((*byte)(arena.slabs[0].ptr), func(*byte) {
+	runtime.SetFinalizer((*byte)(arena.buffers[0].ptr), func(*byte) {
 		close(gced)
 	})
 
@@ -81,11 +83,9 @@ func TestSlabArenaReset(t *testing.T) {
 	_ = New[int](arena)
 }
 
-func TestSlabArenaAllocateSlice(t *testing.T) {}
-
-func isSlabArenaPtr(a Arena, ptr unsafe.Pointer) bool {
-	sa := a.(*slabArena)
-	for _, s := range sa.slabs {
+func isMonotonicArenaPtr(a Arena, ptr unsafe.Pointer) bool {
+	ma := a.(*monotonicArena)
+	for _, s := range ma.buffers {
 		if s.ptr == nil {
 			break
 		}
@@ -113,10 +113,10 @@ func BenchmarkRuntimeNewObject(b *testing.B) {
 	}
 }
 
-func BenchmarkSlabArenaNewObject(b *testing.B) {
-	slabArena := NewSlabArena(1024*1024, 128) // 1Mb slab size (128 MB)
+func BenchmarkMonotonicArenaNewObject(b *testing.B) {
+	monotonicArena := NewMonotonicArena(1024*1024, 128) // 1Mb buffer size (128 MB)
 
-	a := newArenaAllocator[int](slabArena)
+	a := newArenaAllocator[int](monotonicArena)
 	for _, objectCount := range []int{100, 1_000, 10_000, 100_000} {
 		b.Run(fmt.Sprintf("%d", objectCount), func(b *testing.B) {
 			b.ReportAllocs()
@@ -130,10 +130,10 @@ func BenchmarkSlabArenaNewObject(b *testing.B) {
 	}
 }
 
-func BenchmarkConcurrentSlabArenaNewObject(b *testing.B) {
-	slabArena := NewSlabArena(1024*1024, 128) // 1Mb slab size (128 MB)
+func BenchmarkConcurrentMonotonicArenaNewObject(b *testing.B) {
+	monotonicArena := NewMonotonicArena(1024*1024, 128) // 1Mb buffer size (128 MB)
 
-	a := newArenaAllocator[int](NewConcurrentArena(slabArena))
+	a := newArenaAllocator[int](NewConcurrentArena(monotonicArena))
 	for _, objectCount := range []int{100, 1_000, 10_000, 100_000} {
 		b.Run(fmt.Sprintf("%d", objectCount), func(b *testing.B) {
 			b.ReportAllocs()
@@ -161,10 +161,10 @@ func BenchmarkRuntimeMakeSlice(b *testing.B) {
 	}
 }
 
-func BenchmarkSlabArenaMakeSlice(b *testing.B) {
-	slabArena := NewSlabArena(1024*1024, 128) // 1Mb slab size (128 MB)
+func BenchmarkMonotonicArenaMakeSlice(b *testing.B) {
+	monotonicArena := NewMonotonicArena(1024*1024, 128) // 1Mb buffer size (128 MB)
 
-	a := newArenaAllocator[int](slabArena)
+	a := newArenaAllocator[int](monotonicArena)
 	for _, objectCount := range []int{100, 1_000, 10_000, 100_000} {
 		b.Run(fmt.Sprintf("%d", objectCount), func(b *testing.B) {
 			b.ReportAllocs()
@@ -178,10 +178,10 @@ func BenchmarkSlabArenaMakeSlice(b *testing.B) {
 	}
 }
 
-func BenchmarkConcurrentSlabArenaMakeSlice(b *testing.B) {
-	slabArena := NewSlabArena(1024*1024, 128) // 1Mb slab size (128 MB)
+func BenchmarkConcurrentMonotonicArenaMakeSlice(b *testing.B) {
+	monotonicArena := NewMonotonicArena(1024*1024, 128) // 1Mb buffer size (128 MB)
 
-	a := newArenaAllocator[int](NewConcurrentArena(slabArena))
+	a := newArenaAllocator[int](NewConcurrentArena(monotonicArena))
 	for _, objectCount := range []int{100, 1_000, 10_000, 100_000} {
 		b.Run(fmt.Sprintf("%d", objectCount), func(b *testing.B) {
 			b.ReportAllocs()

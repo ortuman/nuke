@@ -6,23 +6,23 @@ import (
 	"unsafe"
 )
 
-type slabArena struct {
-	slabs []*slab
+type monotonicArena struct {
+	buffers []*monotonicBuffer
 }
 
-type slab struct {
+type monotonicBuffer struct {
 	ptr    unsafe.Pointer
 	offset int
 	size   int
 }
 
-func newSlab(size int) *slab {
-	return &slab{size: size}
+func newMonotonicBuffer(size int) *monotonicBuffer {
+	return &monotonicBuffer{size: size}
 }
 
-func (s *slab) alloc(size int) (unsafe.Pointer, bool) {
+func (s *monotonicBuffer) alloc(size int) (unsafe.Pointer, bool) {
 	if s.ptr == nil {
-		buf := make([]byte, s.size) // allocate slab buffer lazily
+		buf := make([]byte, s.size) // allocate monotonic buffer lazily
 		s.ptr = unsafe.Pointer(unsafe.SliceData(buf))
 	}
 	if s.availableBytes() < size {
@@ -34,7 +34,7 @@ func (s *slab) alloc(size int) (unsafe.Pointer, bool) {
 	return ptr, true
 }
 
-func (s *slab) reset(release bool) {
+func (s *monotonicBuffer) reset(release bool) {
 	if s.offset == 0 {
 		return
 	}
@@ -47,7 +47,7 @@ func (s *slab) reset(release bool) {
 	}
 }
 
-func (s *slab) zeroOutBuffer() {
+func (s *monotonicBuffer) zeroOutBuffer() {
 	b := unsafe.Slice((*byte)(s.ptr), s.size)
 
 	// This piece of code will be translated into a runtime.memclrNoHeapPointers
@@ -59,23 +59,23 @@ func (s *slab) zeroOutBuffer() {
 	}
 }
 
-func (s *slab) availableBytes() int {
+func (s *monotonicBuffer) availableBytes() int {
 	return s.size - s.offset
 }
 
-// NewSlabArena creates a new slab arena with a specified number of slabs and slab size.
-func NewSlabArena(slabSize, slabCount int) Arena {
-	a := &slabArena{}
-	for i := 0; i < slabCount; i++ {
-		a.slabs = append(a.slabs, newSlab(slabSize))
+// NewMonotonicArena creates a new monotonic arena with a specified number of buffers and a buffer size.
+func NewMonotonicArena(bufferSize, bufferCount int) Arena {
+	a := &monotonicArena{}
+	for i := 0; i < bufferCount; i++ {
+		a.buffers = append(a.buffers, newMonotonicBuffer(bufferSize))
 	}
 	return a
 }
 
 // Alloc satisfies the Arena interface.
-func (a *slabArena) Alloc(size int) unsafe.Pointer {
-	for i := 0; i < len(a.slabs); i++ {
-		ptr, ok := a.slabs[i].alloc(size)
+func (a *monotonicArena) Alloc(size int) unsafe.Pointer {
+	for i := 0; i < len(a.buffers); i++ {
+		ptr, ok := a.buffers[i].alloc(size)
 		if ok {
 			return ptr
 		}
@@ -84,8 +84,8 @@ func (a *slabArena) Alloc(size int) unsafe.Pointer {
 }
 
 // Reset satisfies the Arena interface.
-func (a *slabArena) Reset(release bool) {
-	for _, s := range a.slabs {
+func (a *monotonicArena) Reset(release bool) {
+	for _, s := range a.buffers {
 		s.reset(release)
 	}
 }
