@@ -83,6 +83,16 @@ func TestMonotonicArenaReset(t *testing.T) {
 	_ = New[int](arena)
 }
 
+func TestMonotonicArenaMultipleTypes(t *testing.T) {
+	arena := NewMonotonicArena(8182, 1) // 8KB
+
+	var b = New[byte](arena)
+	var p = New[*int](arena)
+
+	require.Equal(t, *b, byte(0))
+	require.True(t, *p == nil)
+}
+
 func isMonotonicArenaPtr(a Arena, ptr unsafe.Pointer) bool {
 	ma := a.(*monotonicArena)
 	for _, s := range ma.buffers {
@@ -90,7 +100,7 @@ func isMonotonicArenaPtr(a Arena, ptr unsafe.Pointer) bool {
 			break
 		}
 		beginPtr := uintptr(s.ptr)
-		endPtr := uintptr(s.ptr) + uintptr(s.size)
+		endPtr := uintptr(s.ptr) + s.size
 
 		if uintptr(ptr) >= beginPtr && uintptr(ptr) < endPtr {
 			return true
@@ -114,7 +124,7 @@ func BenchmarkRuntimeNewObject(b *testing.B) {
 }
 
 func BenchmarkMonotonicArenaNewObject(b *testing.B) {
-	monotonicArena := NewMonotonicArena(1024*1024, 128) // 1Mb buffer size (128 MB)
+	monotonicArena := NewMonotonicArena(2*1024*1024, 32) // 2Mb buffer size (64Mb max size)
 
 	a := newArenaAllocator[int](monotonicArena)
 	for _, objectCount := range []int{100, 1_000, 10_000, 100_000} {
@@ -131,7 +141,7 @@ func BenchmarkMonotonicArenaNewObject(b *testing.B) {
 }
 
 func BenchmarkConcurrentMonotonicArenaNewObject(b *testing.B) {
-	monotonicArena := NewMonotonicArena(1024*1024, 128) // 1Mb buffer size (128 MB)
+	monotonicArena := NewMonotonicArena(2*1024*1024, 32) // 2Mb buffer size (64Mb max size)
 
 	a := newArenaAllocator[int](NewConcurrentArena(monotonicArena))
 	for _, objectCount := range []int{100, 1_000, 10_000, 100_000} {
@@ -162,7 +172,7 @@ func BenchmarkRuntimeMakeSlice(b *testing.B) {
 }
 
 func BenchmarkMonotonicArenaMakeSlice(b *testing.B) {
-	monotonicArena := NewMonotonicArena(1024*1024, 128) // 1Mb buffer size (128 MB)
+	monotonicArena := NewMonotonicArena(2*1024*1024, 32) // 2Mb buffer size (64Mb max size)
 
 	a := newArenaAllocator[int](monotonicArena)
 	for _, objectCount := range []int{100, 1_000, 10_000, 100_000} {
@@ -179,7 +189,7 @@ func BenchmarkMonotonicArenaMakeSlice(b *testing.B) {
 }
 
 func BenchmarkConcurrentMonotonicArenaMakeSlice(b *testing.B) {
-	monotonicArena := NewMonotonicArena(1024*1024, 128) // 1Mb buffer size (128 MB)
+	monotonicArena := NewMonotonicArena(2*1024*1024, 32) // 2Mb buffer size (64Mb max size)
 
 	a := newArenaAllocator[int](NewConcurrentArena(monotonicArena))
 	for _, objectCount := range []int{100, 1_000, 10_000, 100_000} {

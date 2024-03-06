@@ -9,7 +9,8 @@ import (
 // Arena is an interface that describes a memory allocation arena.
 type Arena interface {
 	// Alloc allocates memory of the given size and returns a pointer to it.
-	Alloc(size int) unsafe.Pointer
+	// The alignment parameter specifies the alignment of the allocated memory.
+	Alloc(size, alignment uintptr) unsafe.Pointer
 
 	// Reset resets the arena's state, optionally releasing the memory.
 	// After invoking this method any pointer previously returned by Alloc becomes immediately invalid.
@@ -22,7 +23,7 @@ type Arena interface {
 func New[T any](a Arena) *T {
 	if a != nil {
 		var x T
-		if ptr := a.Alloc(int(unsafe.Sizeof(x))); ptr != nil {
+		if ptr := a.Alloc(unsafe.Sizeof(x), unsafe.Alignof(x)); ptr != nil {
 			return (*T)(ptr)
 		}
 	}
@@ -37,7 +38,7 @@ func MakeSlice[T any](a Arena, len, cap int) []T {
 	if a != nil {
 		var x T
 		bufSize := int(unsafe.Sizeof(x)) * cap
-		if ptr := (*T)(a.Alloc(bufSize)); ptr != nil {
+		if ptr := (*T)(a.Alloc(uintptr(bufSize), unsafe.Alignof(x))); ptr != nil {
 			s := unsafe.Slice(ptr, cap)
 			return s[:len]
 		}

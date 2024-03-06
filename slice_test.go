@@ -13,7 +13,7 @@ import (
 // It simply allocates memory using Go's built-in make function.
 type mockArena struct{}
 
-func (m *mockArena) Alloc(size int) unsafe.Pointer {
+func (m *mockArena) Alloc(size, _ uintptr) unsafe.Pointer {
 	return unsafe.Pointer(&make([]byte, size)[0])
 }
 
