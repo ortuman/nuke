@@ -26,8 +26,8 @@ func (s *monotonicBuffer) alloc(size, alignment uintptr) (unsafe.Pointer, bool) 
 		s.ptr = unsafe.Pointer(unsafe.SliceData(buf))
 	}
 	alignOffset := uintptr(0)
-	for alignedPtr := uintptr(s.ptr) + s.offset; alignedPtr%alignment != 0; alignedPtr++ {
-		alignOffset++
+	if delta := (uintptr(s.ptr) + s.offset) % alignment; delta != 0 {
+		alignOffset = delta
 	}
 	allocSize := size + alignOffset
 
@@ -46,10 +46,10 @@ func (s *monotonicBuffer) reset(release bool) {
 	}
 	s.offset = 0
 
+	s.zeroOutBuffer()
+
 	if release {
 		s.ptr = nil
-	} else {
-		s.zeroOutBuffer()
 	}
 }
 
@@ -71,7 +71,7 @@ func (s *monotonicBuffer) availableBytes() uintptr {
 
 // NewMonotonicArena creates a new monotonic arena with a specified number of buffers and a buffer size.
 func NewMonotonicArena(bufferSize, bufferCount int) Arena {
-	a := &monotonicArena{}
+	a := &monotonicArena{buffers: make([]*monotonicBuffer, 0, bufferCount)}
 	for i := 0; i < bufferCount; i++ {
 		a.buffers = append(a.buffers, newMonotonicBuffer(bufferSize))
 	}
@@ -80,7 +80,7 @@ func NewMonotonicArena(bufferSize, bufferCount int) Arena {
 
 // Alloc satisfies the Arena interface.
 func (a *monotonicArena) Alloc(size, alignment uintptr) unsafe.Pointer {
-	for i := 0; i < len(a.buffers); i++ {
+	for i := range a.buffers {
 		ptr, ok := a.buffers[i].alloc(size, alignment)
 		if ok {
 			return ptr
@@ -91,7 +91,7 @@ func (a *monotonicArena) Alloc(size, alignment uintptr) unsafe.Pointer {
 
 // Reset satisfies the Arena interface.
 func (a *monotonicArena) Reset(release bool) {
-	for _, s := range a.buffers {
-		s.reset(release)
+	for i := range a.buffers {
+		a.buffers[i].reset(release)
 	}
 }

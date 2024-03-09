@@ -111,7 +111,7 @@ func isMonotonicArenaPtr(a Arena, ptr unsafe.Pointer) bool {
 
 func BenchmarkRuntimeNewObject(b *testing.B) {
 	a := newRuntimeAllocator[int]()
-	for _, objectCount := range []int{100, 1_000, 10_000, 100_000} {
+	for _, objectCount := range []int{100, 1_000, 10_000, 100_000, 1_000_000} {
 		b.Run(fmt.Sprintf("%d", objectCount), func(b *testing.B) {
 			b.ReportAllocs()
 			for i := 0; i < b.N; i++ {
@@ -127,7 +127,7 @@ func BenchmarkMonotonicArenaNewObject(b *testing.B) {
 	monotonicArena := NewMonotonicArena(2*1024*1024, 32) // 2Mb buffer size (64Mb max size)
 
 	a := newArenaAllocator[int](monotonicArena)
-	for _, objectCount := range []int{100, 1_000, 10_000, 100_000} {
+	for _, objectCount := range []int{100, 1_000, 10_000, 100_000, 1_000_000} {
 		b.Run(fmt.Sprintf("%d", objectCount), func(b *testing.B) {
 			b.ReportAllocs()
 			for i := 0; i < b.N; i++ {
@@ -144,7 +144,7 @@ func BenchmarkConcurrentMonotonicArenaNewObject(b *testing.B) {
 	monotonicArena := NewMonotonicArena(2*1024*1024, 32) // 2Mb buffer size (64Mb max size)
 
 	a := newArenaAllocator[int](NewConcurrentArena(monotonicArena))
-	for _, objectCount := range []int{100, 1_000, 10_000, 100_000} {
+	for _, objectCount := range []int{100, 1_000, 10_000, 100_000, 1_000_000} {
 		b.Run(fmt.Sprintf("%d", objectCount), func(b *testing.B) {
 			b.ReportAllocs()
 			for i := 0; i < b.N; i++ {
@@ -159,7 +159,7 @@ func BenchmarkConcurrentMonotonicArenaNewObject(b *testing.B) {
 
 func BenchmarkRuntimeMakeSlice(b *testing.B) {
 	a := newRuntimeAllocator[int]()
-	for _, objectCount := range []int{100, 1_000, 10_000, 100_000} {
+	for _, objectCount := range []int{100, 1_000, 10_000, 100_000, 1_000_000} {
 		b.Run(fmt.Sprintf("%d", objectCount), func(b *testing.B) {
 			b.ReportAllocs()
 			for i := 0; i < b.N; i++ {
@@ -175,7 +175,7 @@ func BenchmarkMonotonicArenaMakeSlice(b *testing.B) {
 	monotonicArena := NewMonotonicArena(2*1024*1024, 32) // 2Mb buffer size (64Mb max size)
 
 	a := newArenaAllocator[int](monotonicArena)
-	for _, objectCount := range []int{100, 1_000, 10_000, 100_000} {
+	for _, objectCount := range []int{100, 1_000, 10_000, 100_000, 1_000_000} {
 		b.Run(fmt.Sprintf("%d", objectCount), func(b *testing.B) {
 			b.ReportAllocs()
 			for i := 0; i < b.N; i++ {
@@ -192,7 +192,7 @@ func BenchmarkConcurrentMonotonicArenaMakeSlice(b *testing.B) {
 	monotonicArena := NewMonotonicArena(2*1024*1024, 32) // 2Mb buffer size (64Mb max size)
 
 	a := newArenaAllocator[int](NewConcurrentArena(monotonicArena))
-	for _, objectCount := range []int{100, 1_000, 10_000, 100_000} {
+	for _, objectCount := range []int{100, 1_000, 10_000, 100_000, 1_000_000} {
 		b.Run(fmt.Sprintf("%d", objectCount), func(b *testing.B) {
 			b.ReportAllocs()
 			for i := 0; i < b.N; i++ {
