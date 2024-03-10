@@ -26,8 +26,8 @@ func (s *monotonicBuffer) alloc(size, alignment uintptr) (unsafe.Pointer, bool) 
 		s.ptr = unsafe.Pointer(unsafe.SliceData(buf))
 	}
 	alignOffset := uintptr(0)
-	if delta := (uintptr(s.ptr) + s.offset) % alignment; delta != 0 {
-		alignOffset = delta
+	if delta := (uintptr(s.ptr) + s.offset) % alignment; delta > 0 {
+		alignOffset = alignment - delta
 	}
 	allocSize := size + alignOffset
 
