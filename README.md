@@ -126,36 +126,36 @@ func main() {
 Below is a comparative table with the different benchmark results.
 
 ```
-BenchmarkRuntimeNewObject/100-8                	                 1310493	     909.2 ns/op	     800 B/op	     100 allocs/op
-BenchmarkRuntimeNewObject/1000-8               	                  132147	      9030 ns/op	    8000 B/op	    1000 allocs/op
-BenchmarkRuntimeNewObject/10000-8              	                   13296	     90249 ns/op	   80000 B/op	   10000 allocs/op
-BenchmarkRuntimeNewObject/100000-8             	                    1316	    904476 ns/op	  800004 B/op	  100000 allocs/op
-BenchmarkRuntimeNewObject/1000000-8            	                     130	   9033261 ns/op	 8000044 B/op	 1000000 allocs/op
-BenchmarkMonotonicArenaNewObject/100-8         	                 2266246	     530.5 ns/op	       0 B/op	       0 allocs/op
-BenchmarkMonotonicArenaNewObject/1000-8        	                  228908	      5200 ns/op	       0 B/op	       0 allocs/op
-BenchmarkMonotonicArenaNewObject/10000-8       	                   23200	     51807 ns/op	       0 B/op	       0 allocs/op
-BenchmarkMonotonicArenaNewObject/100000-8      	                    2312	    519789 ns/op	       0 B/op	       0 allocs/op
-BenchmarkMonotonicArenaNewObject/1000000-8     	                     229	   5203328 ns/op	       0 B/op	       0 allocs/op
-BenchmarkConcurrentMonotonicArenaNewObject/100-8         	  884904	      1357 ns/op	       0 B/op	       0 allocs/op
-BenchmarkConcurrentMonotonicArenaNewObject/1000-8        	   88495	     13526 ns/op	       0 B/op	       0 allocs/op
-BenchmarkConcurrentMonotonicArenaNewObject/10000-8       	    8844	    135562 ns/op	       0 B/op	       0 allocs/op
-BenchmarkConcurrentMonotonicArenaNewObject/100000-8      	     885	   1359547 ns/op	       0 B/op	       0 allocs/op
-BenchmarkConcurrentMonotonicArenaNewObject/1000000-8     	      87	  13591854 ns/op	       0 B/op	       0 allocs/op
-BenchmarkRuntimeMakeSlice/100-8                          	   57231	     20169 ns/op	  204800 B/op	     100 allocs/op
-BenchmarkRuntimeMakeSlice/1000-8                         	    5780	    206335 ns/op	 2048007 B/op	    1000 allocs/op
-BenchmarkRuntimeMakeSlice/10000-8                        	     585	   2017157 ns/op	20480080 B/op	   10000 allocs/op
-BenchmarkRuntimeMakeSlice/100000-8                       	      57	  20167039 ns/op	204800759 B/op	  100007 allocs/op
-BenchmarkRuntimeMakeSlice/1000000-8                      	       5	 200384042 ns/op	2048007507 B/op	 1000078 allocs/op
-BenchmarkMonotonicArenaMakeSlice/100-8                   	  627627	      2219 ns/op	       0 B/op	       0 allocs/op
-BenchmarkMonotonicArenaMakeSlice/1000-8                  	   52328	     22791 ns/op	       0 B/op	       0 allocs/op
-BenchmarkMonotonicArenaMakeSlice/10000-8                 	    3667	    312075 ns/op	       0 B/op	       0 allocs/op
-BenchmarkMonotonicArenaMakeSlice/100000-8                	     164	   6971221 ns/op	70582281 B/op	   34464 allocs/op
-BenchmarkMonotonicArenaMakeSlice/1000000-8               	       8	 128829224 ns/op	1913782512 B/op	  934466 allocs/op
-BenchmarkConcurrentMonotonicArenaMakeSlice/100-8         	  157754	      8651 ns/op	       0 B/op	       0 allocs/op
-BenchmarkConcurrentMonotonicArenaMakeSlice/1000-8        	   13676	     87545 ns/op	       0 B/op	       0 allocs/op
-BenchmarkConcurrentMonotonicArenaMakeSlice/10000-8       	    1358	    879413 ns/op	       0 B/op	       0 allocs/op
-BenchmarkConcurrentMonotonicArenaMakeSlice/100000-8      	     109	  10689078 ns/op	70582276 B/op	   34464 allocs/op
-BenchmarkConcurrentMonotonicArenaMakeSlice/1000000-8     	       8	 133404771 ns/op	1913782680 B/op	  934468 allocs/op
+BenchmarkRuntimeNewObject/100-8                	                  745374	      1571 ns/op	    4800 B/op	     100 allocs/op
+BenchmarkRuntimeNewObject/1000-8               	                   76626	     15633 ns/op	   48000 B/op	    1000 allocs/op
+BenchmarkRuntimeNewObject/10000-8              	                    7628	    156884 ns/op	  480001 B/op	   10000 allocs/op
+BenchmarkRuntimeNewObject/100000-8             	                     759	   1574775 ns/op	 4800014 B/op	  100000 allocs/op
+BenchmarkRuntimeNewObject/1000000-8            	                      75	  15658095 ns/op	48000140 B/op	 1000001 allocs/op
+BenchmarkMonotonicArenaNewObject/100-8         	                 1594798	     753.7 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMonotonicArenaNewObject/1000-8        	                  160849	      7443 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMonotonicArenaNewObject/10000-8       	                   16070	     74735 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMonotonicArenaNewObject/100000-8      	                    1618	    745795 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMonotonicArenaNewObject/1000000-8     	                     146	   8097215 ns/op	       0 B/op	       0 allocs/op
+BenchmarkConcurrentMonotonicArenaNewObject/100-8         	  848425	      1372 ns/op	       0 B/op	       0 allocs/op
+BenchmarkConcurrentMonotonicArenaNewObject/1000-8        	   88532	     13571 ns/op	       0 B/op	       0 allocs/op
+BenchmarkConcurrentMonotonicArenaNewObject/10000-8       	    8764	    138387 ns/op	       0 B/op	       0 allocs/op
+BenchmarkConcurrentMonotonicArenaNewObject/100000-8      	     876	   1365637 ns/op	       0 B/op	       0 allocs/op
+BenchmarkConcurrentMonotonicArenaNewObject/1000000-8     	      87	  13638768 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRuntimeMakeSlice/100-8                          	   19886	     60312 ns/op	 1024005 B/op	     100 allocs/op
+BenchmarkRuntimeMakeSlice/1000-8                         	    1975	    603525 ns/op	10240051 B/op	    1000 allocs/op
+BenchmarkRuntimeMakeSlice/10000-8                        	     196	   6045213 ns/op	102400519 B/op	   10005 allocs/op
+BenchmarkRuntimeMakeSlice/100000-8                       	      19	  60450787 ns/op	1024005588 B/op	  100058 allocs/op
+BenchmarkRuntimeMakeSlice/1000000-8                      	       2	 601334917 ns/op	10240049392 B/op	 1000514 allocs/op
+BenchmarkMonotonicArenaMakeSlice/100-8                   	  147604	     11495 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMonotonicArenaMakeSlice/1000-8                  	    7401	    158989 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMonotonicArenaMakeSlice/10000-8                 	     729	   1618622 ns/op	       0 B/op	       0 allocs/op
+BenchmarkMonotonicArenaMakeSlice/100000-8                	      44	  25553032 ns/op	822722688 B/op	   80345 allocs/op
+BenchmarkMonotonicArenaMakeSlice/1000000-8               	       4	 274910375 ns/op	10038723976 B/op	  980358 allocs/op
+BenchmarkConcurrentMonotonicArenaMakeSlice/100-8         	   61780	     19308 ns/op	       0 B/op	       0 allocs/op
+BenchmarkConcurrentMonotonicArenaMakeSlice/1000-8        	    5998	    194522 ns/op	       0 B/op	       0 allocs/op
+BenchmarkConcurrentMonotonicArenaMakeSlice/10000-8       	     604	   1935818 ns/op	       0 B/op	       0 allocs/op
+BenchmarkConcurrentMonotonicArenaMakeSlice/100000-8      	      44	  25918637 ns/op	822722675 B/op	   80345 allocs/op
+BenchmarkConcurrentMonotonicArenaMakeSlice/1000000-8     	       4	 276969698 ns/op	10038723640 B/op	  980355 allocs/op
 ```
 
 ## Contributing
