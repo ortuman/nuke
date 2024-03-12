@@ -37,6 +37,16 @@ func (s *monotonicBuffer) alloc(size, alignment uintptr) (unsafe.Pointer, bool) 
 	ptr := unsafe.Pointer(uintptr(s.ptr) + s.offset + alignOffset)
 	s.offset += allocSize
 
+	b := unsafe.Slice((*byte)(ptr), size)
+
+	// This piece of code will be translated into a runtime.memclrNoHeapPointers
+	// invocation by the compiler, which is an assembler optimized implementation.
+	// Architecture specific code can be found at src/runtime/memclr_$GOARCH.s
+	// in Go source (since https://codereview.appspot.com/137880043).
+	for i := range b {
+		b[i] = 0
+	}
+
 	return ptr, true
 }
 
@@ -48,20 +58,6 @@ func (s *monotonicBuffer) reset(release bool) {
 
 	if release {
 		s.ptr = nil
-	} else {
-		s.zeroOutBuffer()
-	}
-}
-
-func (s *monotonicBuffer) zeroOutBuffer() {
-	b := unsafe.Slice((*byte)(s.ptr), s.size)
-
-	// This piece of code will be translated into a runtime.memclrNoHeapPointers
-	// invocation by the compiler, which is an assembler optimized implementation.
-	// Architecture specific code can be found at src/runtime/memclr_$GOARCH.s
-	// in Go source (since https://codereview.appspot.com/137880043).
-	for i := range b {
-		b[i] = 0
 	}
 }
 
